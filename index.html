@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrasaTek Cloud POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #print-section, #print-section * { visibility: visible; }
+            #print-section { 
+                position: absolute; left: 0; top: 0; width: 80mm; 
+                padding: 5mm; font-family: 'Courier New', Courier, monospace; 
+                font-size: 12px; color: #000; background: #fff;
+            }
+            .no-print { display: none !important; }
+        }
+        .loader { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans h-screen flex flex-col">
+
+    <div id="loader" class="fixed inset-0 bg-white z-[100] flex items-center justify-center">
+        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+    </div>
+
+    <div id="loginPage" class="flex items-center justify-center h-screen bg-gray-900">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-96 border-t-4 border-blue-600">
+            <h2 class="text-2xl font-bold mb-2 text-center text-gray-800">PrasaTek Cloud</h2>
+            <p class="text-center text-gray-500 text-sm mb-6">Enter credentials to sync data</p>
+            <input type="text" id="username" placeholder="Username" class="w-full p-3 border rounded mb-4 outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded mb-6 outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition">Login to Cloud</button>
+            <p id="loginError" class="text-red-500 text-sm mt-3 text-center hidden">Invalid Username or Password.</p>
+        </div>
+    </div>
+
+    <div id="selectionPage" class="hidden flex flex-col items-center justify-center h-screen bg-gray-800 text-white">
+        <h2 class="text-3xl font-bold mb-8">Select Workspace</h2>
+        <div class="flex gap-6">
+            <button onclick="enterApp('product')" class="bg-blue-600 p-8 rounded-xl shadow-lg hover:bg-blue-500 transition text-2xl flex flex-col items-center gap-2"><span>🛒</span> Products</button>
+            <button onclick="enterApp('service')" class="bg-green-600 p-8 rounded-xl shadow-lg hover:bg-green-500 transition text-2xl flex flex-col items-center gap-2"><span>🔧</span> Services</button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden flex h-full">
+        <aside class="w-64 bg-gray-900 text-white flex flex-col">
+            <div class="p-6 text-xl font-bold border-b border-gray-800 text-center tracking-widest">PRASATEK</div>
+            <nav class="flex-1 p-4 space-y-2">
+                <button onclick="showTab('dashboard')" class="w-full text-left p-3 rounded hover:bg-gray-800 transition flex items-center gap-3">📊 Dashboard</button>
+                <button onclick="showTab('billing')" class="w-full text-left p-3 rounded hover:bg-gray-800 transition flex items-center gap-3">🧾 POS / Billing</button>
+                <button onclick="showTab('inventory')" class="w-full text-left p-3 rounded hover:bg-gray-800 transition flex items-center gap-3">📦 Database</button>
+                <button onclick="showTab('settings')" class="w-full text-left p-3 rounded hover:bg-gray-800 transition flex items-center gap-3">⚙️ Settings</button>
+            </nav>
+            <div class="p-4 border-t border-gray-800 space-y-2">
+                <button onclick="switchMode()" class="w-full p-2 rounded bg-gray-800 text-yellow-400 text-sm font-bold">🔄 Switch Mode</button>
+                <button onclick="location.reload()" class="w-full p-2 rounded bg-red-900/30 text-red-400 text-sm">🚪 Logout</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden bg-gray-50">
+            <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+                <h1 id="pageTitle" class="text-2xl font-bold text-gray-800">Dashboard</h1>
+                <div class="font-bold px-5 py-2 rounded-full text-sm uppercase" id="currentModeBadge">Mode</div>
+            </header>
+
+            <section class="flex-1 overflow-y-auto p-6">
+                <div id="tab-dashboard" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                            <h3 class="text-gray-400 text-xs font-bold uppercase">Monthly Sales</h3>
+                            <p class="text-4xl font-bold text-gray-800 mt-2" id="dashSales">Rs. 0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                            <h3 class="text-gray-400 text-xs font-bold uppercase" id="dashItemLabel">Total Items</h3>
+                            <p class="text-4xl font-bold text-gray-800 mt-2" id="dashItems">0</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500" id="dashStockWidget">
+                            <h3 class="text-gray-400 text-xs font-bold uppercase">Low Stock</h3>
+                            <p class="text-4xl font-bold text-gray-800 mt-2" id="dashStock">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-billing" class="tab-content hidden flex gap-8">
+                    <div class="w-[55%] bg-white p-6 rounded-xl shadow-sm no-print">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <input type="text" id="billCustomer" placeholder="Customer Name" class="p-3 bg-gray-50 border rounded outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" id="billContact" placeholder="Contact No" class="p-3 bg-gray-50 border rounded outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex gap-3 mb-6 bg-gray-100 p-4 rounded-lg">
+                            <select id="billItemSelect" class="flex-1 p-3 border rounded outline-none"></select>
+                            <div id="qtyContainer" class="w-24">
+                                <input type="number" id="billQty" value="1" min="1" class="w-full p-3 border rounded outline-none">
+                            </div>
+                            <button onclick="addToCart()" class="bg-blue-600 text-white px-6 py-3 rounded font-bold">Add</button>
+                        </div>
+                        <div class="border rounded-lg mb-4 h-64 overflow-y-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 sticky top-0"><tr><th class="p-3">Item/Service</th><th class="p-3 qty-col">Qty</th><th class="p-3 text-right">Price</th><th class="p-3 text-center">Action</th></tr></thead>
+                                <tbody id="uiCartTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-between items-center mb-4">
+                            <label class="font-bold">Discount (Rs.)</label>
+                            <input type="number" id="billDiscount" value="0" class="w-32 p-2 border rounded text-right font-bold" onkeyup="updateCartUI()">
+                        </div>
+                        <button onclick="processFinalBill()" class="w-full bg-green-600 text-white font-bold text-xl py-4 rounded-lg shadow-lg">Complete & Print Bill</button>
+                    </div>
+
+                    <div class="w-[45%] flex justify-center bg-gray-200 p-4 rounded-xl no-print">
+                        <div id="print-section" class="bg-white shadow-xl w-80 p-6">
+                            <div class="text-center mb-4">
+                                <h2 class="text-xl font-bold uppercase" id="receiptCompany">PrasaTek Solutions</h2>
+                                <p class="text-xs" id="receiptAddress">Computer Repair & Services</p>
+                                <p class="text-xs" id="receiptContact">--</p>
+                            </div>
+                            <div class="border-t border-b border-dashed border-black py-2 mb-3 text-[10px] uppercase">
+                                <div class="flex justify-between"><span>Inv:</span> <span id="receiptInvNo">--</span></div>
+                                <div class="flex justify-between"><span>Date:</span> <span id="receiptDate">--</span></div>
+                                <div class="flex justify-between"><span>Cust:</span> <span id="receiptCustName">--</span></div>
+                            </div>
+                            <table class="w-full text-[10px] mb-3">
+                                <thead><tr class="border-b border-black text-left"><th class="pb-1">Description</th><th class="pb-1 text-center receipt-qty-col">Qty</th><th class="pb-1 text-right">Amt</th></tr></thead>
+                                <tbody id="printCartTableBody"></tbody>
+                            </table>
+                            <div class="border-t border-dashed border-black pt-2 text-[10px] space-y-1">
+                                <div class="flex justify-between"><span>Subtotal:</span> <span id="receiptSubtotal">0.00</span></div>
+                                <div class="flex justify-between text-red-600"><span>Discount:</span> <span id="receiptDiscountAmt">0.00</span></div>
+                                <div class="flex justify-between text-sm font-bold border-t border-black pt-2"><span>TOTAL:</span> <span>Rs. <span id="receiptTotal">0.00</span></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-inventory" class="tab-content hidden max-w-4xl mx-auto">
+                    <div class="bg-white p-6 rounded-xl shadow-sm mb-6 border border-gray-100">
+                        <div class="flex gap-4 items-end">
+                            <div class="flex-1">
+                                <label class="text-xs font-bold text-gray-500 uppercase">Name</label>
+                                <input type="text" id="invName" class="w-full p-3 border bg-gray-50 rounded outline-none">
+                            </div>
+                            <div class="w-32">
+                                <label class="text-xs font-bold text-gray-500 uppercase">Price</label>
+                                <input type="number" id="invPrice" class="w-full p-3 border bg-gray-50 rounded outline-none">
+                            </div>
+                            <div class="w-24" id="invStockContainer">
+                                <label class="text-xs font-bold text-gray-500 uppercase">Stock</label>
+                                <input type="number" id="invStock" class="w-full p-3 border bg-gray-50 rounded outline-none">
+                            </div>
+                            <button onclick="saveToFirebase()" class="bg-blue-600 text-white px-8 py-3 rounded font-bold shadow-md">Save</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-100"><tr class="border-b"><th class="p-3">Description</th><th class="p-3">Price</th><th class="p-3" id="invTableStockCol">Stock</th><th class="p-3 text-right">Action</th></tr></thead>
+                            <tbody id="inventoryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-settings" class="tab-content hidden max-w-lg mx-auto">
+                    <div class="bg-white p-8 rounded-xl shadow-sm">
+                        <h2 class="text-lg font-bold mb-6 border-b pb-2">Receipt Configuration</h2>
+                        <div class="space-y-4">
+                            <div><label class="block text-sm font-bold mb-1">Shop Name</label><input type="text" id="setCompany" class="w-full p-3 border rounded"></div>
+                            <div><label class="block text-sm font-bold mb-1">Tagline</label><input type="text" id="setAddress" class="w-full p-3 border rounded"></div>
+                            <div><label class="block text-sm font-bold mb-1">Phone</label><input type="text" id="setContact" class="w-full p-3 border rounded"></div>
+                            <button onclick="saveShopSettings()" class="w-full bg-blue-600 text-white py-3 rounded font-bold">Save to Cloud</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, setDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqihOt3yiTMBBTRevPfKKL_FIKp6A5msg",
+            authDomain: "serandpro-c8f21.firebaseapp.com",
+            projectId: "serandpro-c8f21",
+            storageBucket: "serandpro-c8f21.firebasestorage.app",
+            messagingSenderId: "445850625666",
+            appId: "1:445850625666:web:22eb34916796c90d37b69b",
+            measurementId: "G-Q1STFJ893C"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // GLOBALS
+        window.currentMode = 'product';
+        window.cart = [];
+
+        // 1. AUTOMATIC ADMIN SETUP & LOGIN
+        window.handleLogin = async () => {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            try {
+                const userRef = doc(db, "users", "admin");
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists()) {
+                    // Create automatic admin if database is empty
+                    await setDoc(userRef, { username: "admin", password: "admin123" });
+                    alert("First time setup complete! Default Login: admin / admin123");
+                }
+
+                const userData = userSnap.exists() ? userSnap.data() : { username: "admin", password: "admin123" };
+
+                if (u === userData.username && p === userData.password) {
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('selectionPage').classList.remove('hidden');
+                    loadInitialData();
+                } else {
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } catch (e) { alert("Cloud Connection Error: " + e.message); }
+        };
+
+        // 2. DATA MANAGEMENT
+        window.loadInitialData = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            const settingsSnap = await getDocs(collection(db, "settings"));
+            settingsSnap.forEach(d => {
+                const data = d.data();
+                if(d.id === "profile") {
+                    document.getElementById('setCompany').value = data.name || "PrasaTek";
+                    document.getElementById('setAddress').value = data.address || "";
+                    document.getElementById('setContact').value = data.phone || "";
+                    updateReceiptHeaders(data);
+                }
+            });
+            document.getElementById('loader').classList.add('hidden');
+        };
+
+        window.saveToFirebase = async () => {
+            const name = document.getElementById('invName').value;
+            const price = parseFloat(document.getElementById('invPrice').value);
+            const stock = currentMode === 'product' ? parseInt(document.getElementById('invStock').value || 0) : 0;
+
+            if(!name || isNaN(price)) return alert("Fill all details");
+
+            await addDoc(collection(db, "items"), { name, price, stock, type: currentMode });
+            document.getElementById('invName').value = '';
+            document.getElementById('invPrice').value = '';
+            document.getElementById('invStock').value = '';
+            loadInventory();
+        };
+
+        window.loadInventory = async () => {
+            const q = query(collection(db, "items"), where("type", "==", currentMode));
+            const snap = await getDocs(q);
+            const tbody = document.getElementById('inventoryTable');
+            tbody.innerHTML = '';
+            snap.forEach(d => {
+                const item = d.data();
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3">${item.name}</td>
+                        <td class="p-3">Rs. ${item.price}</td>
+                        ${currentMode === 'product' ? `<td class="p-3 ${item.stock < 5 ? 'text-red-500 font-bold' : ''}">${item.stock}</td>` : '<td></td>'}
+                        <td class="p-3 text-right"><button onclick="deleteItem('${d.id}')" class="text-red-500 font-bold">Delete</button></td>
+                    </tr>`;
+            });
+        };
+
+        window.deleteItem = async (id) => {
+            if(confirm("Delete this entry?")) {
+                await deleteDoc(doc(db, "items", id));
+                loadInventory();
+            }
+        };
+
+        // 3. BILLING & SALES
+        window.loadBillingDropdown = async () => {
+            const q = query(collection(db, "items"), where("type", "==", currentMode));
+            const snap = await getDocs(q);
+            const select = document.getElementById('billItemSelect');
+            select.innerHTML = '';
+            snap.forEach(d => {
+                const i = d.data();
+                select.innerHTML += `<option value="${d.id}" data-price="${i.price}" data-name="${i.name}">${i.name} - Rs. ${i.price}</option>`;
+            });
+        };
+
+        window.processFinalBill = async () => {
+            if(cart.length === 0) return alert("Cart is empty");
+            document.getElementById('loader').classList.remove('hidden');
+
+            const total = parseFloat(document.getElementById('receiptTotal').textContent);
+            const monthYear = new Date().toISOString().slice(0, 7);
+
+            // Record Sale
+            await addDoc(collection(db, "sales"), {
+                customer: document.getElementById('billCustomer').value,
+                contact: document.getElementById('billContact').value,
+                total: total,
+                date: new Date().toISOString(),
+                monthYear: monthYear,
+                type: currentMode
+            });
+
+            // Update Stock for Products
+            if(currentMode === 'product') {
+                for(let item of cart) {
+                    const itemRef = doc(db, "items", item.id);
+                    const itemSnap = await getDoc(itemRef);
+                    if(itemSnap.exists()){
+                        await updateDoc(itemRef, { stock: itemSnap.data().stock - item.qty });
+                    }
+                }
+            }
+
+            window.print();
+            window.cart = [];
+            document.getElementById('billCustomer').value = '';
+            document.getElementById('billDiscount').value = '0';
+            generateInvNo();
+            updateCartUI();
+            document.getElementById('loader').classList.add('hidden');
+        };
+
+        window.loadDashboard = async () => {
+            const monthYear = new Date().toISOString().slice(0, 7);
+            const itemsSnap = await getDocs(query(collection(db, "items"), where("type", "==", currentMode)));
+            const salesSnap = await getDocs(query(collection(db, "sales"), where("type", "==", currentMode), where("monthYear", "==", monthYear)));
+
+            let totalSales = 0;
+            salesSnap.forEach(d => totalSales += d.data().total);
+            
+            document.getElementById('dashItems').textContent = itemsSnap.size;
+            document.getElementById('dashSales').textContent = "Rs. " + totalSales.toLocaleString();
+
+            if(currentMode === 'product') {
+                let low = 0;
+                itemsSnap.forEach(d => { if(d.data().stock < 5) low++; });
+                document.getElementById('dashStock').textContent = low;
+            }
+        };
+
+        window.saveShopSettings = async () => {
+            const data = {
+                name: document.getElementById('setCompany').value,
+                address: document.getElementById('setAddress').value,
+                phone: document.getElementById('setContact').value
+            };
+            await setDoc(doc(db, "settings", "profile"), data);
+            updateReceiptHeaders(data);
+            alert("Settings Synced to Cloud!");
+        };
+
+        function updateReceiptHeaders(data) {
+            document.getElementById('receiptCompany').textContent = data.name || "PrasaTek";
+            document.getElementById('receiptAddress').textContent = data.address || "";
+            document.getElementById('receiptContact').textContent = "Tel: " + (data.phone || "--");
+        }
+
+        // INIT UI LOGIC
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loader').classList.add('hidden');
+        });
+
+    </script>
+
+    <script>
+        function enterApp(mode) {
+            currentMode = mode;
+            document.getElementById('selectionPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateModeUI();
+            showTab('dashboard');
+        }
+
+        function switchMode() {
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('selectionPage').classList.remove('hidden');
+            cart = [];
+        }
+
+        function updateModeUI() {
+            const badge = document.getElementById('currentModeBadge');
+            const qtyCont = document.getElementById('qtyContainer');
+            const stCont = document.getElementById('invStockContainer');
+            const stCol = document.getElementById('invTableStockCol');
+            const stWid = document.getElementById('dashStockWidget');
+            const qtyCols = document.querySelectorAll('.qty-col, .receipt-qty-col');
+
+            if(currentMode === 'product') {
+                badge.textContent = "🛒 Products Mode"; badge.className = "bg-blue-100 text-blue-800 font-bold px-4 py-1 rounded-full text-xs";
+                qtyCont.style.display = 'block'; stCont.style.display = 'block'; stCol.style.display = 'table-cell'; stWid.style.display = 'block';
+                qtyCols.forEach(el => el.style.display = 'table-cell');
+            } else {
+                badge.textContent = "🔧 Services Mode"; badge.className = "bg-green-100 text-green-800 font-bold px-4 py-1 rounded-full text-xs";
+                qtyCont.style.display = 'none'; stCont.style.display = 'none'; stCol.style.display = 'none'; stWid.style.display = 'none';
+                qtyCols.forEach(el => el.style.display = 'none');
+            }
+        }
+
+        function showTab(t) {
+            document.querySelectorAll('.tab-content').forEach(e => e.classList.add('hidden'));
+            document.getElementById('tab-'+t).classList.remove('hidden');
+            document.getElementById('pageTitle').textContent = t.toUpperCase();
+            if(t === 'inventory') loadInventory();
+            if(t === 'billing') { loadBillingDropdown(); generateInvNo(); updateCartUI(); }
+            if(t === 'dashboard') loadDashboard();
+        }
+
+        function generateInvNo() {
+            const n = new Date();
+            const id = n.getTime().toString().slice(-6);
+            document.getElementById('receiptInvNo').textContent = "INV-" + id;
+            document.getElementById('receiptDate').textContent = n.toLocaleString();
+        }
+
+        function addToCart() {
+            const s = document.getElementById('billItemSelect');
+            if(!s.value) return;
+            const opt = s.options[s.selectedIndex];
+            cart.push({
+                id: s.value,
+                name: opt.getAttribute('data-name'),
+                price: parseFloat(opt.getAttribute('data-price')),
+                qty: currentMode === 'product' ? parseInt(document.getElementById('billQty').value) : 1
+            });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const uiBody = document.getElementById('uiCartTableBody');
+            const printBody = document.getElementById('printCartTableBody');
+            let sub = 0;
+            uiBody.innerHTML = ''; printBody.innerHTML = '';
+
+            cart.forEach((item, idx) => {
+                const line = item.price * item.qty; sub += line;
+                uiBody.innerHTML += `<tr><td class="p-3">${item.name}</td>${currentMode === 'product' ? `<td class="p-3">${item.qty}</td>` : ''}<td class="p-3 text-right">${line.toFixed(2)}</td><td class="p-3 text-center"><button onclick="cart.splice(${idx},1);updateCartUI()" class="text-red-500">✕</button></td></tr>`;
+                printBody.innerHTML += `<tr><td class="pb-1">${item.name}</td>${currentMode === 'product' ? `<td class="pb-1 text-center">${item.qty}</td>` : ''}<td class="pb-1 text-right">${line.toFixed(2)}</td></tr>`;
+            });
+
+            const disc = parseFloat(document.getElementById('billDiscount').value) || 0;
+            document.getElementById('receiptCustName').textContent = document.getElementById('billCustomer').value || "Guest";
+            document.getElementById('receiptSubtotal').textContent = sub.toFixed(2);
+            document.getElementById('receiptDiscountAmt').textContent = disc.toFixed(2);
+            document.getElementById('receiptTotal').textContent = (sub - disc).toFixed(2);
+        }
+    </script>
+</body>
+</html>
