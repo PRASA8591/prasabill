@@ -862,6 +862,10 @@
 
         window.processFinalBill = async () => {
             if (cart.length === 0) return showToast("Cart is empty!", "warning");
+            
+            const total = parseFloat(document.getElementById('receiptTotal').textContent);
+            if (!await customConfirm("Complete Sale?", `Total Amount: Rs. ${total.toFixed(2)}. Do you want to finalize this bill?`)) return;
+
             const discount = parseFloat(document.getElementById('billDiscount').value) || 0;
             if (discount < 0) return showToast("Discount cannot be negative.", "warning");
 
@@ -898,11 +902,16 @@
                 }
 
                 showToast("Transaction successful!", "success");
+                
+                // Automate PDF Filename
+                const originalTitle = document.title;
+                document.title = invNoStr;
                 window.print();
+                setTimeout(() => document.title = originalTitle, 1500);
 
                 window.cart = [];
                 document.getElementById('billCustomer').value = '';
-                document.getElementById('billContact').value = '';
+                document.getElementById('billStatus').value = 'Paid';
                 document.getElementById('billDiscount').value = '0';
                 generateInvNo();
                 updateCartUI();
@@ -1545,7 +1554,13 @@
                 uiBody.innerHTML += `
                     <tr>
                         <td>${item.name}</td>
-                        ${window.currentMode === 'product' ? `<td class="text-center">${item.qty}</td>` : ''}
+                        ${window.currentMode === 'product' ? `
+                        <td class="text-center">
+                            <span class="editable-price" id="qty-span-${idx}" ondblclick="editQtyInline(${idx})">${item.qty}</span>
+                            <div id="qty-edit-${idx}" style="display:none;">
+                                <input type="number" min="1" class="price-input-small" id="qty-input-${idx}" value="${item.qty}" onblur="saveQtyInline(${idx})" onkeyup="if(event.key==='Enter') saveQtyInline(${idx})">
+                            </div>
+                        </td>` : ''}
                         <td class="text-right">
                             <span class="editable-price" id="price-span-${idx}" ondblclick="editPriceInline(${idx})">Rs. ${item.price.toFixed(2)}</span>
                             <div id="price-edit-${idx}" style="display:none;">
@@ -1576,6 +1591,20 @@
                 if (!isNaN(newVal) && newVal >= 0) {
                     window.cart[idx].price = newVal;
                     window.cart[idx].priceChanged = true;
+                }
+                updateCartUI();
+            };
+
+            window.editQtyInline = (idx) => {
+                document.getElementById(`qty-span-${idx}`).style.display = 'none';
+                document.getElementById(`qty-edit-${idx}`).style.display = 'block';
+                document.getElementById(`qty-input-${idx}`).focus();
+            };
+
+            window.saveQtyInline = (idx) => {
+                const newVal = parseInt(document.getElementById(`qty-input-${idx}`).value);
+                if (!isNaN(newVal) && newVal > 0) {
+                    window.cart[idx].qty = newVal;
                 }
                 updateCartUI();
             };
@@ -1614,18 +1643,15 @@
             const billId = params.get('bill');
             if (!billId) return;
 
-            // Hide EVERYTHING except the print-section
             document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; background:#f1f5f9; min-height:100vh; padding:2rem;">
-                    <div id="ebill-container"></div>
-                    <button onclick="window.print()" class="btn btn-primary no-print" style="max-width:300px; margin-top:2rem;">📥 Download & Print E-Bill</button>
-                    <p class="no-print" style="margin-top:1rem; color:#64748b; font-size:0.8rem;">Powered by PrasaTek System Solutions</p>
+                <div id="ebill-viewer" style="display:flex; flex-direction:column; align-items:center; background:#f1f5f9; min-height:100vh; padding:2rem; font-family:'Outfit', sans-serif;">
+                    <div id="ebill-container" style="background:white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;"></div>
+                    <button id="downloadBtn" class="btn btn-primary no-print" style="max-width:300px; margin-top:2rem; padding:1rem 2rem; border-radius:12px; font-weight:800; background:#009668;">📥 Download Digital Bill</button>
+                    <p class="no-print" style="margin-top:1rem; color:#64748b; font-size:0.8rem;">Powered by PrasaTek System Solutions | www.prasatek.site</p>
                 </div>
             `;
 
             try {
-                // We need to fetch the bill data from Firestore. 
-                // Since this is a public view, we search for the specific invoice number.
                 const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js");
                 const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js");
                 
@@ -1647,26 +1673,30 @@
                 
                 if (!snap.empty) {
                     const sale = snap.docs[0].data();
+                    document.title = sale.invoiceNo; // Set filename for PDF
                     const container = document.getElementById('ebill-container');
                     container.innerHTML = sale.receiptHTML;
                     
-                    // Style the e-bill container to look like a physical sheet
-                    container.firstChild.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
-                    container.firstChild.style.borderRadius = "8px";
-                    container.firstChild.style.margin = "0";
-                    container.firstChild.style.visibility = "visible";
+                    const printSection = container.querySelector('#print-section');
+                    if (printSection) {
+                        printSection.style.visibility = "visible";
+                        printSection.style.position = "static";
+                        printSection.style.boxShadow = "none";
+                        // Force all children to be visible
+                        const children = printSection.querySelectorAll('*');
+                        children.forEach(el => el.style.visibility = 'visible');
+                    }
+
+                    document.getElementById('downloadBtn').onclick = () => window.print();
                     
-                    // Show QR on e-bill too for consistency
+                    // Re-render QR
                     const ebillQR = container.querySelector('#receiptQR');
                     if(ebillQR) {
                         ebillQR.innerHTML = "";
-                        new QRCode(ebillQR, {
-                            text: window.location.href,
-                            width: 60, height: 60
-                        });
+                        new QRCode(ebillQR, { text: window.location.href, width: 60, height: 60 });
                     }
                 } else {
-                    document.getElementById('ebill-container').innerHTML = "<h1>Bill Not Found</h1><p>The link might be expired or incorrect.</p>";
+                    document.getElementById('ebill-container').innerHTML = "<div style='padding:4rem; text-align:center;'><h1>Bill Not Found</h1><p>The link might be expired or incorrect.</p></div>";
                 }
             } catch (e) {
                 console.error(e);
