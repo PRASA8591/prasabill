@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Text&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -113,6 +115,11 @@
                         </div>
                     </div>
 
+                    <div class="panel mt-6" style="height: 350px;">
+                        <h2 class="card-label">Revenue Overview (Monthly)</h2>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+
                     <div class="panel mt-6">
                         <h2 class="auth-title" style="text-align: left; font-size:1.2rem; margin-bottom:1rem;">Recent
                             Transactions</h2>
@@ -202,7 +209,7 @@
                                 <div class="receipt-meta">
                                     <div><span>Inv:</span> <span id="receiptInvNo">--</span></div>
                                     <div><span>Date:</span> <span id="receiptDate">--</span></div>
-                                    <div><span>Cust:</span> <span id="receiptCustName">--</span></div>
+                                    <div><span>Customer:</span> <span id="receiptCustName">--</span></div>
                                     <div><span>User:</span> <span id="receiptUserName">--</span></div>
                                 </div>
                                 <table class="receipt-table">
@@ -225,11 +232,27 @@
                                                 id="receiptTotal">0.00</span></span></div>
                                 </div>
                                 <div class="receipt-footer">
+                                    <div
+                                        style="text-align: left; margin-bottom: 0.5rem; font-size: 0.7rem; color: #666;">
+                                        <p><b>Terms & Conditions:</b></p>
+                                        <p>1. Goods once sold are not returnable.</p>
+                                        <p>2. Warranty as per manufacturer terms.</p>
+                                        <p>3. This is a computer-generated invoice.</p>
+                                    </div>
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1rem; margin-bottom: 0.5rem;">
+                                        <div
+                                            style="text-align: center; border-top: 1px solid black; width: 130px; padding-top: 3px; font-size: 0.7rem;">
+                                            Customer Signature</div>
+                                        <div
+                                            style="text-align: center; border-top: 1px solid black; width: 130px; padding-top: 3px; font-size: 0.7rem;">
+                                            Authorized Signature</div>
+                                    </div>
                                     <p>**Thank you for choosing Us!**</p>
-                                    <p style="font-size: 0.6rem; margin-top: 0.5rem; font-weight: bold;">Powered by
-                                        PrasaTek System Solutions</p>
-                                    <div style="font-family: 'Libre Barcode 39 Text', cursive; font-size: 2.2rem; margin-top:0.5rem; text-align:center;"
-                                        id="receiptBarcode"></div>
+                                    <p style="font-size: 0.7rem; margin-top: 0.25rem; font-weight: 800; color: #000;">Powered by PrasaTek System Solutions</p>
+                                    <p style="font-size: 0.65rem; color: #666; margin-top: 0.1rem;">www.prasatek.site</p>
+                                    <div id="receiptQR" style="margin-top:0.5rem; display:flex; justify-content:center;"></div>
+                                    <p style="font-size: 0.55rem; color: #999; margin-top: 0.2rem;">Scan for E-Bill</p>
                                 </div>
                             </div>
                         </div>
@@ -303,6 +326,38 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Save to Cloud</button>
                         </form>
+
+                        <div style="margin-top: 3rem; border-top: 2px solid var(--border-color); padding-top: 2rem;">
+                            <h2 style="color: var(--danger-color);">🛡️ Advance System Tools</h2>
+                            <p class="card-label" style="margin-bottom: 1.5rem;">Manage your system data and bulk operations</p>
+                            
+                            <div class="grid-cards" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="dash-card" style="border-left-color: var(--primary-color); padding: 1rem;">
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Data Backup</h4>
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 1rem;">Download all items & services as JSON.</p>
+                                    <button onclick="exportData()" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem;">📥 Export Backup</button>
+                                </div>
+                                
+                                <div class="dash-card" style="border-left-color: var(--warning-color); padding: 1rem;">
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Restore Data</h4>
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 1rem;">Restore from a previous JSON backup.</p>
+                                    <input type="file" id="importFile" hidden onchange="importData(event)">
+                                    <button onclick="document.getElementById('importFile').click()" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem;">📤 Import File</button>
+                                </div>
+
+                                <div class="dash-card" style="border-left-color: #8b5cf6; padding: 1rem;">
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Bulk Stock Reset</h4>
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 1rem;">Set all product stocks to a specific value.</p>
+                                    <button onclick="bulkStockReset()" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem; color: #8b5cf6;">🏗️ Bulk Update</button>
+                                </div>
+
+                                <div class="dash-card" style="border-left-color: var(--danger-color); padding: 1rem;">
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Clear Cache</h4>
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 1rem;">Reset local session and force reload.</p>
+                                    <button onclick="location.reload()" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem; color: var(--danger-color);">♻️ Refresh System</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -464,15 +519,24 @@
     </div>
 
     <div id="receiptModal" class="hidden"
-        style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9000; display:flex; justify-content:center; align-items:center;">
+        style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; display:flex; justify-content:center; align-items:center; padding: 2rem;">
         <div
-            style="background:var(--surface-hover); padding:2rem; border-radius:var(--radius-lg); position:relative; box-shadow:var(--shadow-lg);">
-            <button onclick="document.getElementById('receiptModal').classList.add('hidden')"
-                style="position:absolute; right:15px; top:15px; background:none; border:none; font-size:1.5rem; cursor:pointer;"
-                class="text-red">✕</button>
-            <div id="receiptModalContent" class="receipt-panel" style="padding:0; border-radius:0;"></div>
-            <button onclick="window.print()" class="btn btn-primary" style="margin-top:1.5rem;">🖨️ Print Old
-                Receipt</button>
+            style="background:white; padding:1.5rem; border-radius:1rem; width:100%; max-width:650px; height:90vh; position:relative; display:flex; flex-direction:column; animation: slideUp 0.3s ease;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid #eee; padding-bottom:0.5rem;">
+                <h3 style="margin:0;">📜 Receipt Preview</h3>
+                <button onclick="document.getElementById('receiptModal').classList.add('hidden')"
+                    style="background:#fee2e2; border:none; width:35px; height:35px; border-radius:50%; font-size:1.2rem; cursor:pointer; color:#ef4444; display:flex; align-items:center; justify-content:center;">✕</button>
+            </div>
+
+            <div id="receiptModalContent" style="flex:1; overflow-y:auto; padding:1rem; background:#f8fafc; border-radius:0.5rem; display:flex; justify-content:center;">
+                <!-- HTML Content will be injected here -->
+            </div>
+
+            <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+                <button onclick="window.print()" class="btn btn-primary" style="flex:1;">🖨️ Print Receipt</button>
+                <button onclick="document.getElementById('receiptModal').classList.add('hidden')" class="btn btn-outline" style="width:120px;">Close</button>
+            </div>
         </div>
     </div>
 
@@ -639,6 +703,7 @@
                 return showToast("Please enter valid positive numbers.", "warning");
             }
 
+            const id = document.getElementById('invId').value;
             showLoader();
             try {
                 if (id) {
@@ -849,6 +914,40 @@
             }
         };
 
+        // --- DASHBOARD ANALYTICS CHART ---
+        let revChart = null;
+        window.updateRevenueChart = (labels, data) => {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            if (revChart) revChart.destroy();
+            revChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Daily Revenue (Rs.)',
+                        data: data,
+                        borderColor: '#009668',
+                        backgroundColor: 'rgba(0, 150, 104, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#009668',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Outfit' } } },
+                        x: { grid: { display: false }, ticks: { font: { family: 'Outfit' } } }
+                    }
+                }
+            });
+        };
+
         window.loadDashboard = async () => {
             showLoader();
             try {
@@ -895,6 +994,18 @@
                     itemsSnap.forEach(snap => { if (snap.data().stock < 5) low++; });
                     document.getElementById('dashStock').textContent = low;
                 }
+
+                // Prepare Chart Data
+                const dailyData = {};
+                salesSnap.forEach(snap => {
+                    const sale = snap.data();
+                    const day = new Date(sale.date).getDate();
+                    dailyData[day] = (dailyData[day] || 0) + sale.total;
+                });
+                const days = Array.from({ length: new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() }, (_, i) => i + 1);
+                const chartValues = days.map(day => dailyData[day] || 0);
+                updateRevenueChart(days.map(d => "Day " + d), chartValues);
+
             } catch (err) {
                 showToast("Error syncing dashboard analytics", "error");
             } finally {
@@ -1266,6 +1377,69 @@
             }
         };
 
+        // --- ADVANCE TOOLS LOGIC ---
+        window.exportData = async () => {
+            showLoader();
+            try {
+                const snap = await getDocs(collection(db, "items"));
+                const data = [];
+                snap.forEach(d => data.push({ ...d.data(), id: d.id }));
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `PrasaBill_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                showToast("Backup downloaded successfully!", "success");
+            } catch (e) { showToast("Export failed.", "error"); }
+            finally { hideLoader(); }
+        };
+
+        window.importData = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!await customConfirm("Restore Data?", "This will add items from the file to your current database. Continue?")) return;
+            
+            showLoader();
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    let count = 0;
+                    for (const item of data) {
+                        const { id, ...cleanItem } = item;
+                        await addDoc(collection(db, "items"), cleanItem);
+                        count++;
+                    }
+                    showToast(`Imported ${count} items successfully!`, "success");
+                    if (window.currentMode) loadInventory();
+                } catch (err) { showToast("Invalid file format.", "error"); }
+                finally { hideLoader(); e.target.value = ''; }
+            };
+            reader.readAsText(file);
+        };
+
+        window.bulkStockReset = async () => {
+            const newVal = prompt("Enter the stock quantity to set for ALL products:");
+            if (newVal === null || newVal === "" || isNaN(newVal)) return;
+            
+            if (await customConfirm("Bulk Update?", `Set all ${currentMode} stock to ${newVal}?`)) {
+                showLoader();
+                try {
+                    const q = query(collection(db, "items"), where("type", "==", "product"));
+                    const snap = await getDocs(q);
+                    let count = 0;
+                    for (const d of snap.docs) {
+                        await updateDoc(doc(db, "items", d.id), { stock: parseInt(newVal) });
+                        count++;
+                    }
+                    showToast(`Updated ${count} items successfully!`, "success");
+                    loadInventory();
+                } catch (e) { showToast("Bulk update failed.", "error"); }
+                finally { hideLoader(); }
+            }
+        };
+
         function updateReceiptHeaders(data) {
             document.getElementById('receiptCompany').textContent = data.name || "PrasaTek";
             document.getElementById('receiptAddress').textContent = data.address || "";
@@ -1420,9 +1594,88 @@
             document.getElementById('receiptDiscountAmt').textContent = disc.toFixed(2);
             document.getElementById('receiptTotal').textContent = Math.max(0, total).toFixed(2);
 
-            // Barcode generation
+            // QR Code generation
             const invNo = document.getElementById('receiptInvNo').textContent.replace('INV-', '');
-            document.getElementById('receiptBarcode').textContent = `*${invNo}*`;
+            document.getElementById('receiptQR').innerHTML = "";
+            const billUrl = `${window.location.origin}${window.location.pathname}?bill=${invNo}`;
+            new QRCode(document.getElementById("receiptQR"), {
+                text: billUrl,
+                width: 60,
+                height: 60,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        // --- PUBLIC E-BILL VIEW LOGIC ---
+        async function loadPublicEBill() {
+            const params = new URLSearchParams(window.location.search);
+            const billId = params.get('bill');
+            if (!billId) return;
+
+            // Hide EVERYTHING except the print-section
+            document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; background:#f1f5f9; min-height:100vh; padding:2rem;">
+                    <div id="ebill-container"></div>
+                    <button onclick="window.print()" class="btn btn-primary no-print" style="max-width:300px; margin-top:2rem;">📥 Download & Print E-Bill</button>
+                    <p class="no-print" style="margin-top:1rem; color:#64748b; font-size:0.8rem;">Powered by PrasaTek System Solutions</p>
+                </div>
+            `;
+
+            try {
+                // We need to fetch the bill data from Firestore. 
+                // Since this is a public view, we search for the specific invoice number.
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js");
+                const { getFirestore, collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js");
+                
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDqihOt3yiTMBBTRevPfKKL_FIKp6A5msg",
+                    authDomain: "serandpro-c8f21.firebaseapp.com",
+                    projectId: "serandpro-c8f21",
+                    storageBucket: "serandpro-c8f21.firebasestorage.app",
+                    messagingSenderId: "445850625666",
+                    appId: "1:445850625666:web:22eb34916796c90d37b69b",
+                    measurementId: "G-Q1STFJ893C"
+                };
+
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                
+                const q = query(collection(db, "sales"), where("invoiceNo", "==", "INV-" + billId));
+                const snap = await getDocs(q);
+                
+                if (!snap.empty) {
+                    const sale = snap.docs[0].data();
+                    const container = document.getElementById('ebill-container');
+                    container.innerHTML = sale.receiptHTML;
+                    
+                    // Style the e-bill container to look like a physical sheet
+                    container.firstChild.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
+                    container.firstChild.style.borderRadius = "8px";
+                    container.firstChild.style.margin = "0";
+                    container.firstChild.style.visibility = "visible";
+                    
+                    // Show QR on e-bill too for consistency
+                    const ebillQR = container.querySelector('#receiptQR');
+                    if(ebillQR) {
+                        ebillQR.innerHTML = "";
+                        new QRCode(ebillQR, {
+                            text: window.location.href,
+                            width: 60, height: 60
+                        });
+                    }
+                } else {
+                    document.getElementById('ebill-container').innerHTML = "<h1>Bill Not Found</h1><p>The link might be expired or incorrect.</p>";
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Check for e-bill view on startup
+        if (window.location.search.includes('bill=')) {
+            loadPublicEBill();
         }
     </script>
 </body>
