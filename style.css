@@ -339,26 +339,28 @@ tr:hover td { background: var(--surface-hover); }
 }
 #print-section {
     background: white;
-    width: 320px;
-    padding: 2rem;
+    width: 100%;
+    max-width: 580px;
+    padding: 1rem 1.75rem;
     box-shadow: var(--shadow-lg);
     color: black;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Outfit', sans-serif;
+    margin: 0 auto;
 }
-.receipt-header { text-align: center; margin-bottom: 1rem; }
-.receipt-header h2 { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; }
-.receipt-header p { font-size: 0.75rem; margin-bottom: 0.25rem; }
-.receipt-meta { border-top: 1px dashed black; border-bottom: 1px dashed black; padding: 0.5rem 0; margin-bottom: 1rem; font-size: 0.75rem; text-transform: uppercase; }
+.receipt-header { text-align: center; margin-bottom: 0.75rem; border-bottom: 2px solid black; padding-bottom: 0.35rem; }
+.receipt-header h2 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.1rem; }
+.receipt-header p { font-size: 0.75rem; margin-bottom: 0.1rem; color: #333; line-height: 1.1; }
+.receipt-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; padding: 0.35rem 0; margin-bottom: 0.5rem; font-size: 0.75rem; border-bottom: 1px solid #eee; }
 .receipt-meta div { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
-.receipt-table { width: 100%; font-size: 0.75rem; margin-bottom: 1rem; border-collapse: collapse; }
-.receipt-table th { background: transparent; padding: 0.25rem 0; border-bottom: 1px solid black; color: black; font-weight: bold; position: static;}
-.receipt-table td { padding: 0.25rem 0; border-bottom: none; }
-.receipt-totals { border-top: 1px dashed black; padding-top: 0.5rem; font-size: 0.75rem; }
-.receipt-totals div { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
-.receipt-totals .grand-total { font-weight: bold; font-size: 1rem; border-top: 1px solid black; padding-top: 0.5rem; margin-top: 0.5rem; }
-.receipt-totals .text-red-receipt { color: #dc2626; }
-.receipt-logo { max-width: 60px; margin: 0 auto 0.5rem auto; display: block; }
-.receipt-footer { text-align: center; font-size: 0.75rem; margin-top: 1rem; border-top: 1px dashed black; padding-top: 0.5rem; }
+.receipt-table { width: 100%; font-size: 0.75rem; margin-bottom: 0.75rem; border-collapse: collapse; }
+.receipt-table th { background: #f8fafc; padding: 0.3rem; border: 1px solid #000; color: black; font-weight: bold; position: static; text-transform: uppercase; }
+.receipt-table td { padding: 0.25rem 0.4rem; border: 1px solid #eee; }
+.receipt-totals { margin-left: auto; width: 200px; font-size: 0.75rem; }
+.receipt-totals div { display: flex; justify-content: space-between; margin-bottom: 0.2rem; padding: 0.1rem 0; }
+.receipt-totals .grand-total { font-weight: bold; font-size: 1rem; border-top: 2px solid black; padding-top: 0.25rem; margin-top: 0.2rem; }
+.receipt-totals .text-red-receipt { color: #dc2626; font-weight: 600; }
+.receipt-logo { max-width: 45px; margin: 0 auto 0.35rem auto; display: block; }
+.receipt-footer { text-align: center; font-size: 0.7rem; margin-top: 0.75rem; border-top: 1px solid #eee; padding-top: 0.5rem; }
 
 /* Inventory Settings */
 .panel {
@@ -430,14 +432,27 @@ tr:hover td { background: var(--surface-hover); }
 
 /* Print Styles Update */
 @media print {
+    @page {
+        size: A5;
+        margin: 5mm;
+    }
     body * { visibility: hidden; }
     #print-section, #print-section * { visibility: visible; }
+    #ebill-container #print-section, #ebill-container #print-section * { visibility: visible; }
     #print-section {
-        position: absolute; left: 0; top: 0; width: 80mm; padding: 5mm; margin: 0;
-        font-family: 'Courier New', Courier, monospace; font-size: 12px;
+        position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0;
+        font-family: 'Outfit', sans-serif; font-size: 12px;
         color: #000; background: #fff; box-shadow: none; border: none;
     }
+    .receipt-table th { border: 1px solid black !important; background: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .receipt-table td { border: 1px solid #ddd !important; }
     .no-print { display: none !important; }
+}
+
+#ebill-container #print-section {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin: 0;
 }
 
 @media (max-width: 768px) {
