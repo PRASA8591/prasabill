@@ -1,25 +1,25 @@
 # PROPRIETARY LICENSE - PRASATEK SYSTEM SOLUTIONS
 
-**Version 1.0 (March 2026)**
+**Version 2.0 (March 2026)**
 
-THIS SOFTWARE IS PROVIDED AS "PROPRIETARY AND CONFIDENTIAL". 
+### 1. LEGAL NOTICE
+This software, known as the "PrasaTek Cloud POS - Advanced Enterprise Edition", including its source code, design architecture, graphics, and visual interactive elements, is the exclusive intellectual property of **PrasaTek System Solutions**.
 
-### 1. OWNERSHIP
-This software (the "PrasaTek Cloud POS System"), including all code, design elements, logic, and assets, is the sole property of **PrasaTek System Solutions**. 
+### 2. AUTHORIZED USAGE
+Use of this software is granted strictly through a formal agreement with PrasaTek System Solutions. This software is **PROPRIETARY AND CONFIDENTIAL**. 
 
-### 2. RESTRICTIONS
-- **NO COPYING**: You are strictly prohibited from copying, cloning, or replicating this source code in any form.
-- **NO DISTRIBUTION**: You may not distribute, sell, or lease this code to any third party.
-- **NO MODIFICATION**: Unauthorized modification of the core logic or branding is prohibited.
-- **AUTHORIZATION ONLY**: Use of this software is strictly limited to individuals or entities who have been granted explicit permission by PrasaTek System Solutions.
+### 3. PROHIBITED ACTIONS
+- **NO REPLICATION**: Unauthorized copying, cloning, or "forking" of this source code is strictly prohibited.
+- **NO MODIFICATION**: You may not alter, decompile, or reverse-engineer the core billing logic or branding without written consent.
+- **NO REDISTRIBUTION**: This code may not be sold, leased, or distributed as a standalone product or as part of another system.
 
-### 3. ILLEGAL USE & ENFORCEMENT
-Any attempt to use this code without a valid license, or any attempt to steal or replicate the underlying architecture, is considered a violation of intellectual property laws. PrasaTek System Solutions reserves the right to pursue full legal action, including criminal and civil penalties, against any party found in violation of this license.
+### 4. ADVANCED SECURITY AUDIT
+This system includes an internal **Security Audit Log** that tracks administrative actions. Unauthorized access attempts or attempts to bypass licensing checks are logged and may be used as evidence in legal proceedings.
 
-### 4. USAGE DATA
-The system may transmit metadata to PrasaTek servers to verify license validity and prevent unauthorized installations.
+### 5. ENFORCEMENT
+PrasaTek System Solutions actively monitors for unauthorized use of its cloud architecture. Violations of this license will result in immediate termination of cloud access and pursuit of maximum legal damages under global intellectual property laws.
 
 ---
 **PRASATEK SYSTEM SOLUTIONS**
-*Innovating Secure Business Solutions*
+*Secure Innovation for Modern Business*
 © 2026. All Rights Reserved.
