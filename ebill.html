@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital E-Bill | PrasaTek</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #009668;
+            --bg: #f1f5f9;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            font-family: 'Outfit', sans-serif;
+            color: #334155;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        #ebill-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Essential Receipt Styles */
+        #print-section {
+            background: white;
+            padding: 2rem;
+            color: black;
+            font-family: 'Outfit', sans-serif;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+        }
+
+        .receipt-logo {
+            max-width: 80px;
+            height: auto;
+            margin: 0 auto 0.5rem auto;
+            display: block;
+        }
+
+        .receipt-header h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin: 0 0 0.2rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .receipt-header p {
+            font-size: 0.85rem;
+            margin: 0 0 0.1rem 0;
+            color: #444;
+        }
+
+        .receipt-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            padding: 0.75rem 0;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+
+        .receipt-meta div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .receipt-meta span:first-child {
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .receipt-table {
+            width: 100%;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            border-collapse: collapse;
+        }
+
+        .receipt-table th {
+            background: #f8fafc;
+            padding: 0.5rem;
+            border: 1px solid #000;
+            font-weight: 800;
+            text-align: left;
+        }
+
+        .receipt-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .receipt-table .text-center {
+            text-align: center;
+        }
+
+        .receipt-table .text-right {
+            text-align: right;
+        }
+
+        .receipt-totals {
+            margin-left: auto;
+            width: 100%;
+            max-width: 250px;
+            font-size: 0.9rem;
+        }
+
+        .receipt-totals div {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+        }
+
+        .receipt-totals .grand-total {
+            font-weight: 900;
+            font-size: 1.25rem;
+            border-top: 2px solid #000;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            color: #000;
+        }
+
+        .text-red-receipt {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+            color: #64748b;
+        }
+
+        .receipt-footer p {
+            margin: 0.2rem 0;
+        }
+
+        .action-btns {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.85rem 2rem;
+            border-radius: 10px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .btn-dl {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-dl:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .loader-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid #cbd5e1;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .wrapper {
+                padding: 0;
+            }
+
+            #ebill-container {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100% !important;
+            }
+
+            #print-section {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <div id="ebill-container">
+            <div style="padding: 4rem; text-align: center;" id="loader-msg">
+                <div class="loader-spinner" style="margin: 0 auto 1rem auto;"></div>
+                <p style="font-weight: 500;">Securing Connection...</p>
+                <p style="font-size: 0.8rem; color: #64748b;">Fetching Your Digital Receipt</p>
+            </div>
+        </div>
+
+        <div class="action-btns no-print">
+            <button id="downloadBtn" class="btn btn-dl" style="display: none;">📥 Download A5 PDF Bill</button>
+            <button onclick="window.print()" class="btn"
+                style="background:#fff; border:1px solid #e2e8f0; display:none;" id="printBtn">🖨️ Print
+                Receipt</button>
+        </div>
+
+        <p class="no-print" style="margin-top: 2rem; color: #94a3b8; font-size: 0.75rem; font-weight: 600;">Standard
+            Digital Invoice &bull; Prasabill System</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqihOt3yiTMBBTRevPfKKL_FIKp6A5msg",
+            authDomain: "serandpro-c8f21.firebaseapp.com",
+            projectId: "serandpro-c8f21",
+            storageBucket: "serandpro-c8f21.firebasestorage.app",
+            messagingSenderId: "445850625666",
+            appId: "1:445850625666:web:22eb34916796c90d37b69b",
+            measurementId: "G-Q1STFJ893C"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadEBill() {
+            const params = new URLSearchParams(window.location.search);
+            let billId = params.get('bill');
+            if (!billId) {
+                document.getElementById('ebill-container').innerHTML = "<div style='padding:4rem; text-align:center;'><h1>Invalid Access</h1><p>Bill ID is missing from the link.</p></div>";
+                return;
+            }
+            billId = billId.trim();
+
+            try {
+                const formats = ["INV-" + billId, billId];
+                let sale = null;
+
+                for (const fmt of formats) {
+                    const q = query(collection(db, "sales"), where("invoiceNo", "==", fmt), limit(1));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        sale = snap.docs[0].data();
+                        break;
+                    }
+                }
+
+                if (sale) {
+                    document.title = "BILL " + sale.invoiceNo;
+                    const container = document.getElementById('ebill-container');
+                    container.innerHTML = sale.receiptHTML;
+
+                    // Fix logo styling if it's missing or huge
+                    const logo = container.querySelector('.receipt-logo');
+                    if (logo) {
+                        logo.style.maxWidth = "70px";
+                        logo.style.maxHeight = "70px";
+                        logo.style.objectFit = "contain";
+                        logo.style.display = "block";
+                        logo.style.margin = "0 auto 0.5rem auto";
+                    }
+
+                    // Fix table borders for PDF clarity
+                    const table = container.querySelector('.receipt-table');
+                    if (table) {
+                        table.style.borderCollapse = "collapse";
+                        table.querySelectorAll('th, td').forEach(cell => {
+                            cell.style.border = "1px solid #000";
+                            cell.style.padding = "4px 8px";
+                        });
+                    }
+
+                    // Regenerate local view QR to point to current URL
+                    const ebillQR = container.querySelector('#receiptQR');
+                    if (ebillQR) {
+                        ebillQR.innerHTML = "";
+                        new QRCode(ebillQR, { text: window.location.href, width: 70, height: 70 });
+                    }
+
+                    document.getElementById('downloadBtn').style.display = "flex";
+                    document.getElementById('printBtn').style.display = "flex";
+
+                    document.getElementById('downloadBtn').onclick = () => {
+                        const element = container.querySelector('#print-section') || container;
+                        
+                        // Apply temporary styles for PDF generation to ensure tight fit
+                        const originalWidth = element.style.width;
+                        const originalBoxShadow = element.style.boxShadow;
+                        element.style.width = "520px"; // Fixed width for consistent scaling
+                        element.style.boxShadow = "none";
+                        
+                        const opt = {
+                            margin:       0,
+                            filename:     `${sale.invoiceNo}.pdf`,
+                            image:        { type: 'jpeg', quality: 0.98 },
+                            html2canvas:  { 
+                                scale: 2.5, 
+                                useCORS: true, 
+                                letterRendering: true,
+                                width: 520,
+                                x: 0,
+                                y: 0
+                            },
+                            jsPDF:        { unit: 'px', format: [520, 740], orientation: 'portrait' }, // Custom A5-ish px size
+                            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                        };
+                        
+                        html2pdf().set(opt).from(element).save().then(() => {
+                            element.style.width = originalWidth;
+                            element.style.boxShadow = originalBoxShadow;
+                        });
+                    };
+                } else {
+                    document.getElementById('ebill-container').innerHTML = "<div style='padding:4rem; text-align:center;'><h1>404 Not Found</h1><p>We couldn't find a bill with ID: <b>" + billId + "</b></p></div>";
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('ebill-container').innerHTML = "<div style='padding:4rem; text-align:center;'><h1>Network Error</h1><p>Could not verify bill with cloud server.</p></div>";
+            }
+        }
+
+        window.onload = loadEBill;
+    </script>
+</body>
+
+</html>
