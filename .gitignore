@@ -1,15 +1,30 @@
 # OS generated files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDE settings
+# IDE & Editor settings
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Local configuration
-*.local
-config.js (if any)
+# Project Assets & Media
+/screenshots/
+/design_mockups/
+/temp/
 
-# Documentation
+# Reports & Downloads
 *.pdf
-screenshots/
+*.xlsx
+*.csv
+/exports/
+
+# Local Dev Configuration
+*.env
+*.local
+credentials.json
+firebase_config_backup.js
+
+# Testing
+/test_results/
