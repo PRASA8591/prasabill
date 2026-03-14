@@ -1,52 +1,48 @@
-# PrasaTek Cloud POS - PrasaTek System Solutions
+# PrasaTek Cloud POS - Advanced Enterprise Edition
 
-A premium, cloud-synchronized Point of Sale (POS) system designed for efficiency and total control. This system provides a unified interface for managing Products and Services with real-time inventory tracking and comprehensive financial auditing.
+A high-performance, cloud-synchronized Point of Sale (POS) system designed for total business control. This system provides a sophisticated interface for managing Products and Services with real-time tracking and advanced analytical reporting.
 
-## 🚀 Key Features
+## 🌟 New Advanced Features (V2.0)
 
-*   **Dual Mode Architecture**: Seamlessly switch between **Product Mode** (with stock tracking) and **Service Mode**.
-*   **Live Cloud Sync**: Powered by Firebase Firestore for real-time data persistence across devices.
-*   **Advanced Billing**: 
-    *   Manual price overrides during billing.
-    *   **Inline Editing**: Double-click prices in the cart to update them instantly.
-    *   Discount and Tax calculation.
-    *   Payment status tracking (Paid vs. Credit).
-*   **Inventory & Expenses**:
-    *   Track Cost Price vs. Selling Price for automatic profit calculation.
-    *   Dedicated Expense Management module for shop costs (Rent, Utilities, etc.).
-*   **Analytics Engine**:
-    *   Daily/Monthly Revenue summaries.
-    *   **Net Profit/Loss Analysis** (Revenue - Cost of Goods - Expenses).
-    *   Price Change Audit reports to track manual price modifications.
-*   **Security & Permissions**:
-    *   Granular page access control for users.
-    *   Administrator dashboard for system management.
+*   **Premium Visual Experience**:
+    *   **Advanced Appearance Engine**: Persistent **Dark Mode** support for high-contrast night use.
+    *   **Glassmorphism UI**: High-end frosted glass effects and fluid micro-animations.
+*   **Intelligent Reporting**:
+    *   **Visual Data Analytics**: Real-time sales charts (Line/Bar) powered by **Chart.js**.
+    *   **Advanced Metrics**: Tracking Average Bill Value (ABV) and Staff sales performance.
+*   **Enhanced E-Bill System**:
+    *   **A5 Precision**: Digital receipts and PDF downloads perfectly matched to physical A5 standards.
+    *   **Secure Public Hosting**: Dedicated secure viewer for customers with no login requirements.
+*   **Pro-Level Security**:
+    *   **Audit Logs**: Real-time terminal for monitoring system activity and security events.
+    *   **Granular Permissions**: Role-based access control for Price Editing, Deletion, and Admin Tools.
+    *   **Rapid Session Lock**: Instant security shield to protect sensitive data.
 
-## 🛠️ Technology Stack
+## 🚀 Core Functionalities
 
-*   **Frontend**: HTML5, Vanilla JavaScript, Custom Premium CSS (Outfit Typography).
-*   **Backend/Database**: Firebase Firestore.
-*   **Icons**: Native Emojis for zero-dependency performance.
-*   **Barcode**: Barcode 39 rendering for receipts.
+*   **Dual Mode Architecture**: Switch between **Product Mode** (inventory tracking) and **Service Mode**.
+*   **Cloud Persistence**: Real-time synchronization via Firebase Firestore.
+*   **Hardware Compatibility**: Configurable printer profiles for A5, 80mm, and 58mm POS thermal printers.
+*   **Financial Suite**: Profit/Loss analysis, Expense tracking, and Sales auditing.
 
-## 📦 Setup & Installation
+## ⚙️ Technology Stack
 
-1.  Clone the project to your local web server environment.
-2.  Open `index.html` in any modern web browser.
-3.  **Initial Admin Login**:
-    *   **Username**: `admin`
-    *   **Password**: `admin123`
-    *   *(Note: Change these immediately after your first login in the Users tab)*.
+*   **Frontend**: HTML5, Vanilla JavaScript, CSS3 (Custom Design System).
+*   **Visuals**: Chart.js for data visualization.
+*   **PDF Engine**: html2pdf.js for A5 document generation.
+*   **Database**: Firebase Firestore.
+*   **Typography**: Google Fonts - Outfit.
+
+## 📦 Setup
+
+1.  Clone the repository.
+2.  Open `index.html` in a modern browser.
+3.  Default Admin: `admin` / `admin123`.
 
 ## 📄 License & Proprietary Notice
 
 **PROPRIETARY CODE - ALL RIGHTS RESERVED**
-
-This software and its source code are the exclusive property of **PrasaTek System Solutions**. 
-
-1.  **NO UNAUTHORIZED COPYING**: Copying, redistributing, or modifying this code without express written permission is strictly prohibited and considered illegal.
-2.  **PERMITTED USE**: Only authorized users registered within the specific system instance provided by PrasaTek may use this software.
-3.  **LEGAL ACTION**: Any attempt to reverse engineer, scrape, or replicate this system will be met with legal action.
+Owned by **PrasaTek System Solutions**. Unauthorized copying, modification, or distribution is strictly prohibited.
 
 ---
 © 2026 PrasaTek System Solutions. All Rights Reserved.
